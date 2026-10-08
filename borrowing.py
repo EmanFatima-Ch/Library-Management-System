@@ -23,7 +23,6 @@ def find_member(member_id):
 
 
 def borrow_book(member_id, book_id):
-    """Let a member borrow a book. Returns True on success."""
     member = find_member(member_id)
     book = find_book(book_id)
 
@@ -44,7 +43,6 @@ def borrow_book(member_id, book_id):
 
 
 def return_book(member_id, book_id):
-    """Let a member return a book. Returns True on success."""
     for record in borrowed_records:
         if record["book_id"] == book_id and record["member_id"] == member_id:
             borrowed_records.remove(record)
@@ -57,7 +55,6 @@ def return_book(member_id, book_id):
 
 
 def view_borrowed_books():
-    """Print all currently borrowed books."""
     if not borrowed_records:
         print("No books are currently borrowed.")
         return
