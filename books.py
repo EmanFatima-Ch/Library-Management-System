@@ -1,24 +1,40 @@
-members = []
+books = []
 
 
-def register_member(member_id, name):
-    """Register a new member. Returns True if added, False if the ID already exists."""
-    for member in members:
-        if member["id"] == member_id:
-            print("A member with this ID already exists.")
+def add_book(book_id, title, author):
+    """Add a new book. Returns True if added, False if the ID already exists."""
+    for book in books:
+        if book["id"] == book_id:
+            print("A book with this ID already exists.")
             return False
 
-    members.append({"id": member_id, "name": name})
-    print(f"Member '{name}' registered.")
+    books.append({"id": book_id, "title": title, "author": author, "available": True})
+    print(f"Book '{title}' added.")
     return True
 
 
-def view_members():
-    """Print all registered members."""
-    if not members:
-        print("No members registered.")
+def view_books():
+    """Print all books."""
+    if not books:
+        print("No books in the library.")
         return
 
-    print("\n--- Registered Members ---")
-    for member in members:
-        print(f"ID: {member['id']} | Name: {member['name']}")
+    print("\n--- All Books ---")
+    for book in books:
+        status = "Available" if book["available"] else "Borrowed"
+        print(f"ID: {book['id']} | {book['title']} by {book['author']} | {status}")
+
+
+def remove_book(book_id):
+    """Remove a book by ID. Returns True if removed, False otherwise."""
+    for book in books:
+        if book["id"] == book_id:
+            if not book["available"]:
+                print("This book is currently borrowed and cannot be removed.")
+                return False
+            books.remove(book)
+            print(f"Book '{book['title']}' removed.")
+            return True
+
+    print("Book not found.")
+    return False
