@@ -45,8 +45,12 @@ def borrow_book(member_id, book_id):
 def return_book(member_id, book_id):
     for record in borrowed_records:
         if record["book_id"] == book_id and record["member_id"] == member_id:
+            book = find_book(book_id)
+            if book is None:
+                print("Book not found.")
+                return False
             borrowed_records.remove(record)
-            find_book(book_id)["available"] = True
+            book["available"] = True
             print("Book returned successfully.")
             return True
 
@@ -63,4 +67,5 @@ def view_borrowed_books():
     for record in borrowed_records:
         book = find_book(record["book_id"])
         member = find_member(record["member_id"])
-        print(f"'{book['title']}' borrowed by {member['name']}")
+        if book is not None and member is not None:
+            print(f"'{book['title']}' borrowed by {member['name']}")
