@@ -3,7 +3,7 @@ members = []
 
 
 def register_member(member_id, name):
-    """Register a new member. Returns True if added, False if the ID already exists."""
+    """Register a member, returning False if the ID already exists."""
     for member in members:
         if member["id"] == member_id:
             print("A member with this ID already exists.")
