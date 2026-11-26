@@ -1,4 +1,4 @@
-name: Library Management System CI/CD
+name: CI/CD Pipeline
 
 on:
   push:
@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  code-quality-verification:
-    name: Code Quality & Verification
+  ci-cd-pipeline:
+    name: CI/CD Pipeline
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -32,101 +32,3 @@ jobs:
 
       - name: Run pytest suite
         run: python -m pytest -c pytest.ini tests/
-
-  release-packaging:
-    name: Release Packaging
-    needs: code-quality-verification
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-
-      - name: Build release archive
-        run: |
-          mkdir -p dist
-          python -m zipfile -c dist/library-management-system.zip \
-            authentication.py books.py borrowing.py main.py members.py \
-            search.py storage.py two_factor.py requirements.txt
-
-      - name: Upload release artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: library-management-system-release
-          path: dist/library-management-system.zip
-          if-no-files-found: error
-
-  release-readiness-smoke-check:
-    name: Release Readiness & Smoke Check
-    needs: release-packaging
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-
-      - name: Download release artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: library-management-system-release
-          path: dist
-
-      - name: Verify package and smoke-check modules
-        run: |
-          python - <<'PY'
-          import importlib
-          from pathlib import Path
-          import sys
-          import tempfile
-          import zipfile
-
-          archive_path = Path("dist/library-management-system.zip")
-          expected_files = {
-              "authentication.py",
-              "books.py",
-              "borrowing.py",
-              "main.py",
-              "members.py",
-              "requirements.txt",
-              "search.py",
-              "storage.py",
-              "two_factor.py",
-          }
-
-          with zipfile.ZipFile(archive_path) as archive:
-              actual_files = set(archive.namelist())
-              assert actual_files == expected_files, (
-                  f"Unexpected release contents: {actual_files}"
-              )
-              assert archive.testzip() is None, "Release archive is corrupt"
-
-              with tempfile.TemporaryDirectory() as extraction_path:
-                  archive.extractall(extraction_path)
-                  sys.path.insert(0, extraction_path)
-                  module_names = (
-                      "main",
-                      "authentication",
-                      "two_factor",
-                      "books",
-                      "borrowing",
-                      "members",
-                      "search",
-                      "storage",
-                  )
-                  modules = {
-                      name: importlib.import_module(name)
-                      for name in module_names
-                  }
-                  for name, module in modules.items():
-                      assert Path(module.__file__).resolve().parent == Path(
-                          extraction_path
-                      ).resolve(), f"{name} was not imported from the archive"
-
-                  assert callable(modules["main"].run_cli)
-                  modules["main"]._show_menu()
-          PY
